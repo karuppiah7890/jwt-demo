@@ -2,25 +2,17 @@ const mongoose = require('mongoose'),
   Post = mongoose.model('Post')
 
 module.exports = {
-  routes: function(app) {
+  routes: function(app, passport) {
 
-    // GET - JSON response
-    app.get('/getPosts', (req, res) => {
+    // POST - JSON response
+    app.post('/getPosts', passport.authenticate('jwt', { session: false }), (req, res) => {
 
-      console.log(req.query)
-
-      if(!req.user) {
-        res.json({
-          status: 'error',
-          error: 'You must login first'
-        })
-        return
-      }
+      //console.log(req.body)
 
       const {
         beforeTimestamp,
         afterTimestamp
-      } = req.query;
+      } = req.body;
 
       let beforeTs, afterTs, limit
 
@@ -51,42 +43,31 @@ module.exports = {
       query.limit(limit).exec()
       .then((result) => {
         if(!result) {
-          res.json({
-            status: 'error',
+          res.status(401).json({
             error: 'Some error occurred'
           })
         } else {
           //console.log(result)
           res.json({
-            status: 'success',
             data: result
           })
         }
       })
       .catch((err) => {
-        res.json({
-          status: 'error',
+        res.status(401).json({
           error: err
         })
       })
     })
 
-    // GET - JSON response
-    app.get('/createPost', (req, res) => {
+    // POST - JSON response
+    app.post('/createPost', passport.authenticate('jwt', { session: false }), (req, res) => {
 
-      console.log(req.query)
+      //console.log(req.body)
 
-      if(!req.user) {
-        res.json({
-          status: 'error',
-          error: 'You must login first'
-        })
-        return
-      }
-        //console.log(req.body)
       const {
         post
-      } = req.query
+      } = req.body
 
       const newPost = {
         id: Math.floor(Math.random() * 10000000000),
@@ -100,7 +81,6 @@ module.exports = {
       .then((result) => {
         if(result) {
           res.json({
-            status: 'success',
             message: 'Post created',
             data: result
           })
@@ -110,8 +90,7 @@ module.exports = {
       })
       .catch((err) => {
         console.log(err)
-        res.json({
-          status: 'error',
+        res.status(401).json({
           error: err
         })
       })
